@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from db.models import DBAuthor, DBBook
 from schemas import AuthorCreate, BookCreate
@@ -31,6 +31,7 @@ def create_book(db: Session, book: BookCreate):
     db.add(db_book)
     db.commit()
     db.refresh(db_book)
+    _ = db_book.author  # force lazy load while session is open
     return db_book
 
 
@@ -40,7 +41,7 @@ def get_books(
         limit: int = 10,
         author_id: int = None
 ):
-    queryset = select(DBBook).offset(skip).limit(limit)
+    queryset = select(DBBook).options(selectinload(DBBook.author)).offset(skip).limit(limit)
 
     if author_id is not None:
         queryset = queryset.where(DBBook.author_id == author_id)

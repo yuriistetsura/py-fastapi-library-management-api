@@ -2,10 +2,12 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
 import crud
-from db.database import SessionLocal
+from db.database import SessionLocal, engine, Base
 from schemas import AuthorCreate, Book, BookCreate, Author
 
 app = FastAPI(title="Library Management API")
+
+Base.metadata.create_all(bind=engine)
 
 
 def get_db() -> Session:
@@ -32,7 +34,7 @@ def get_authors_by_id(author_id: int, db: Session = Depends(get_db)):
     return crud.get_author_by_id(db=db, author_id=author_id)
 
 
-@app.post("/book", response_model=BookCreate)
+@app.post("/book", response_model=Book)
 def create_book(book: BookCreate, db: Session = Depends(get_db)):
     return crud.create_book(book=book, db=db)
 
